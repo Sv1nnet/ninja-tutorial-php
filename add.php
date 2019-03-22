@@ -1,5 +1,7 @@
 <?php
 
+include('config/db_connect.php');
+
 $errors = array('email' => '', 'title' => '', 'ingredients' => '');
 
 if (isset($_POST['submit'])) {
@@ -35,8 +37,23 @@ if (isset($_POST['submit'])) {
     }
   }
 
-  if(!array_filter($errors)) {
-    header('Location: index.php');
+  if (!array_filter($errors)) {
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $title = mysqli_real_escape_string($conn, $_POST['title']);
+    $ingredients = mysqli_real_escape_string($conn, $_POST['ingredients']);
+
+    // create sql
+    $sql = "INSERT INTO pizzas(title, email, ingredients) VALUES('$title', '$email', '$ingredients')";
+
+    // save to db and check
+    if (mysqli_query($conn, $sql)) {
+      // success
+
+      header('Location: index.php');
+    } else {
+      // error
+      echo 'query error: '.mysqli_error($conn);
+    }
   } 
 
 } // end of POST check
@@ -50,18 +67,30 @@ if (isset($_POST['submit'])) {
 
 <section class="container grey-text">
   <h4 class="center">Add a Pizza</h4>
-  <form action="add.php" method="POST" class="white">
+  <form action="<?php echo $_SERVER['PHP_SELF'] ?>" method="POST" class="white">
     <label for="email">Your Email:</label>
     <input type="text" name="email" id="" value="<?php echo isset($email) ? htmlspecialchars($email) : '' ?>">
-    <div class="red-text"><?php echo $errors['email'] ?></div>
+    <?php 
+      if(!empty($errors['email'])) {
+        echo "<div class=\"red-text\">{$errors['email']}</div>";
+      }
+    ?>
 
-    <label for="emtitleail">Pizza Title:</label>
+    <label for="title">Pizza Title:</label>
     <input type="text" name="title" id="" value="<?php echo isset($title) ? htmlspecialchars($title) : '' ?>">
-    <div class="red-text"><?php echo $errors['title'] ?></div>
+    <?php 
+      if(!empty($errors['title'])) {
+        echo "<div class=\"red-text\">{$errors['title']}</div>";
+      }
+    ?>
 
     <label for="ingridients">Ingridients (comma separated):</label>
     <input type="text" name="ingredients" id="" value="<?php echo isset($ingredients) ? htmlspecialchars($ingredients) : '' ?>">
-    <div class="red-text"><?php echo $errors['ingredients'] ?></div>
+    <?php 
+      if(!empty($errors['ingredients'])) {
+        echo "<div class=\"red-text\">{$errors['ingredients']}</div>";
+      }
+    ?>
 
     <div class="center">
       <input type="submit" name="submit" value="submit" class="btn brand z-depth-0">
